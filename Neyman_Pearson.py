@@ -1,4 +1,6 @@
 from decimal import Decimal
+import math
+
 def disc_NP(Dist1, Dist2, alpha):
     """
     This function takes two distributions and a significance level and returns the decision rule for the Neyman-Pearson test.
@@ -29,7 +31,7 @@ def disc_NP(Dist1, Dist2, alpha):
     [Dist1.append((val, 0)) for val in dist2_range if val not in dist1_range]
     assert len(Dist1) == len(Dist2)
     for val, prob in Dist1:
-        likelihood_ratio.append((val, map2.get(val) / prob))
+        likelihood_ratio.append((val, round(Decimal(map2.get(val)) / Decimal(prob), 6)))
     likelihood_ratio.sort(key=lambda x: x[1])
     map3 = {}
     Ly_to_y = {}
@@ -42,16 +44,17 @@ def disc_NP(Dist1, Dist2, alpha):
         if map3.get(likelihood_ratio[i][1]) == None:
             map3[likelihood_ratio[i][1]] = map1.get(likelihood_ratio[i][0])
         else:
-            map3[likelihood_ratio[i][1]] = map3.get(likelihood_ratio[i][1]) + map1.get(likelihood_ratio[i][0])
+            map3[likelihood_ratio[i][1]] = round(Decimal(map3.get(likelihood_ratio[i][1]))
+                                                 + Decimal(map1.get(likelihood_ratio[i][0])), 6)
     i = 1
     keys = list(map3.keys())
     keys.sort()
     curr_threshold = likelihood_ratio[0][1]
-    curr_pfa = sum([map1.get(likelihood_ratio[i][0]) for i in range(1, len(likelihood_ratio))
+    curr_pfa = sum([round(Decimal(map1.get(likelihood_ratio[i][0])), 6)for i in range(1, len(likelihood_ratio))
                     if likelihood_ratio[i][1] > likelihood_ratio[0][1]])
     while curr_pfa > alpha and i < len(keys):
         curr_threshold = keys[i]
-        curr_pfa -= map3.get(keys[i])
+        curr_pfa -= round(Decimal(map3.get(keys[i])), 6)
         i += 1
     nullvals = [[y for y in Ly_to_y[Ly]] for Ly in list(Ly_to_y.keys()) if Ly < curr_threshold]
     altvals = [[y for y in Ly_to_y[Ly]] for Ly in list(Ly_to_y.keys()) if Ly > curr_threshold]
@@ -59,7 +62,7 @@ def disc_NP(Dist1, Dist2, alpha):
     if curr_pfa == alpha:
         print_results(curr_threshold, 0, Ly_to_y, nullvals, altvals, gammavals)
     else:
-        gamma = (alpha - curr_pfa) / map3.get(curr_threshold)
+        gamma = round(Decimal(alpha) - Decimal(curr_pfa), 6) / round(Decimal(map3.get(curr_threshold)), 6)
         print_results(curr_threshold, gamma, Ly_to_y, nullvals, altvals, gammavals)
     return [(0, nullvals), (1, altvals), (gamma, gammavals)]
 
