@@ -1,5 +1,6 @@
 from decimal import Decimal
 import math
+import argparse
 import matplotlib.pyplot as plt
 
 def disc_NP(Dist1, Dist2, alpha):
@@ -89,8 +90,8 @@ def disc_NP(Dist1, Dist2, alpha):
     keys = list(map3.keys())
     keys.sort()
     curr_threshold = likelihood_ratio[0][1]
-    curr_pfa = sum([round(Decimal(map1.get(likelihood_ratio[i][0])), 6) for i in range(1, len(likelihood_ratio))
-                    if likelihood_ratio[i][1] > likelihood_ratio[0][1]])
+    curr_pfa = round(sum([round(Decimal(map1.get(likelihood_ratio[i][0])), 6) for i in range(1, len(likelihood_ratio))
+                    if likelihood_ratio[i][1] > likelihood_ratio[0][1]]), 6)
     while curr_pfa > alpha and i < len(keys):
         curr_threshold = keys[i]
         curr_pfa -= round(Decimal(map3.get(keys[i])), 6)
@@ -101,7 +102,7 @@ def disc_NP(Dist1, Dist2, alpha):
     if curr_pfa == alpha:
         answer = print_results(curr_threshold, 0, nullvals, altvals, gammavals)
     else:
-        gamma = round(Decimal(alpha) - Decimal(curr_pfa), 6) / round(Decimal(map3.get(curr_threshold)), 6)
+        gamma = round(round(Decimal(alpha) - Decimal(curr_pfa), 6) / round(Decimal(map3.get(curr_threshold)), 6), 6)
         answer = print_results(curr_threshold, gamma, nullvals, altvals, gammavals)
     points = create_points(map3, map4, gamma)
     plot_roc_curve_with_answer(points, answer)
@@ -159,9 +160,35 @@ def plot_roc_curve_with_answer(points, answer):
 
     plt.show()
 
+def main ():
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument(
+        '--Null',
+        help='The distribution of the null hypothesis as a list of tuples [(value, P[Value])...].',
+        type= parse_tuple_list,
+        required=False)
+    parser.add_argument(
+        '--Alt',
+        help='The distribution of the hypothesis as a list of tuples [(value, P[Value])...].',
+        type=parse_tuple_list,
+        required=False)
+    parser.add_argument(
+        '--alpha', help='Alpha', type=float, required=False)
+    args = parser.parse_args()
+    disc_NP(args.Null_hypothesis_distribution, args.Alternative_hypothesis_distribution, args.alpha)
 
+def parse_tuple_list(arg):
+    try:
+        tuples = eval(arg)  # Safely evaluate the argument as a Python expression
+        if isinstance(tuples, list) and all(isinstance(t, tuple) and len(t) == 3 for t in tuples):
+            return tuples
+        else:
+            raise argparse.ArgumentTypeError("Invalid tuple list format.")
+    except:
+        raise argparse.ArgumentTypeError("Invalid tuple list format.")
 
-
-
+if __name__ == '__main__':
+  main()
 
 
