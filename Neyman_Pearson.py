@@ -37,7 +37,7 @@ def disc_NP(Dist1, Dist2, alpha):
             pcd = Decimal(sum(list(map4.values())[i + 1:])) + Decimal(gamma) * Decimal(map4[t])
             points.append((pfa, pcd, t))
         return points
-    def print_results(threshold, gamma, Ly_to_y, nullvals, altvals, gammavals):
+    def print_results(threshold, gamma, nullvals, altvals, gammavals):
         print("Accept null hypothesis if L(y) <", threshold)
         print("Reject null hypothesis if L(y) >", threshold)
         print("If L(y) = ", threshold, "then reject the null hypothesis with probability", gamma)
@@ -47,6 +47,9 @@ def disc_NP(Dist1, Dist2, alpha):
               "then reject the null hypothesis")
         print("If y is in", gammavals,
               "then reject the null hypothesis with probability", gamma)
+        return "The decision rule is: If y is in: " + str(nullvals) + " then accept the null hypothesis" + "\n" + \
+                    "If y is in: " + str(altvals) + " then reject the null hypothesis" + "\n" + \
+                    "If y is in: " + str(gammavals) + " then reject the null hypothesis with probability: " + str(gamma)
     dist1_range = [val for val, prob in Dist1]
     dist2_range = [val for val, prob in Dist2]
     map1, map2, likelihood_ratio = {}, {}, []
@@ -96,12 +99,12 @@ def disc_NP(Dist1, Dist2, alpha):
     altvals = [[y for y in Ly_to_y[Ly]] for Ly in list(Ly_to_y.keys()) if Ly > curr_threshold]
     gammavals = [[y for y in Ly_to_y[Ly]] for Ly in list(Ly_to_y.keys()) if Ly == curr_threshold]
     if curr_pfa == alpha:
-        print_results(curr_threshold, 0, Ly_to_y, nullvals, altvals, gammavals)
+        answer = print_results(curr_threshold, 0, nullvals, altvals, gammavals)
     else:
         gamma = round(Decimal(alpha) - Decimal(curr_pfa), 6) / round(Decimal(map3.get(curr_threshold)), 6)
-        print_results(curr_threshold, gamma, Ly_to_y, nullvals, altvals, gammavals)
+        answer = print_results(curr_threshold, gamma, nullvals, altvals, gammavals)
     points = create_points(map3, map4, gamma)
-    plot_roc_curve(points)
+    plot_roc_curve_with_answer(points, answer)
     return [(0, nullvals), (1, altvals), (gamma, gammavals)]
 def Continous_Neyman_Pearson(Dist1, Dist2, alpha):
     """
@@ -115,7 +118,7 @@ def Continous_Neyman_Pearson(Dist1, Dist2, alpha):
     # I can instead divide the pdfs to create L(y)
 
 
-def plot_roc_curve(points):
+def plot_roc_curve_with_answer(points, answer):
     # Ensure the input list is not empty
     if not points:
         raise ValueError("Input list cannot be empty.")
@@ -126,7 +129,8 @@ def plot_roc_curve(points):
     # Add (0, 0) and (1, 1) points to represent the lower-left and upper-right corners
     pfas = (0,) + pfas + (1,)
     pcds = (0,) + pcds + (1,)
-    labels = ["inf"] + list(labels) + ["0"]
+    labels = ["(0, 0)"] + list(labels) + ["(1, 1)"]
+
     # Sort the points based on PFA in ascending order
     sorted_indices = sorted(range(len(pfas)), key=lambda i: pfas[i])
     pfas = [pfas[i] for i in sorted_indices]
@@ -145,8 +149,17 @@ def plot_roc_curve(points):
     plt.text(0.5, 0.2, f'AUC = {auc:.2f}', ha='center', fontsize=12)
 
     for i, label in enumerate(labels):
-        plt.annotate("t = " + str(label), (pfas[i], pcds[i]), textcoords="offset points", xytext=(5,5), ha='center')
+        plt.annotate(label, (pfas[i], pcds[i]), textcoords="offset points", xytext=(5,5), ha='center')
+
+    # Create a textbox to display the string "answer"
+    plt.subplots_adjust(bottom=0.2)
+    textbox = plt.axes([0.15, 0.05, 0.7, 0.1])
+    textbox.set_title('Optimal Desicion Rule')
+    textbox.text(0.5, 0.5, answer, fontsize=6, ha='center', va='center')
+
     plt.show()
+
+
 
 
 
