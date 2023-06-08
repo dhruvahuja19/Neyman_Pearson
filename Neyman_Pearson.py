@@ -155,7 +155,6 @@ def plot_roc_curve_with_answer(points, answer):
     # Create a textbox to display the string "answer"
     plt.subplots_adjust(bottom=0.2)
     textbox = plt.axes([0.15, 0.05, 0.7, 0.1])
-    textbox.set_title('Optimal Desicion Rule')
     textbox.text(0.5, 0.5, answer, fontsize=6, ha='center', va='center')
 
     plt.show()
@@ -181,7 +180,7 @@ def main ():
 def parse_tuple_list(arg):
     try:
         tuples = eval(arg)  # Safely evaluate the argument as a Python expression
-        if isinstance(tuples, list) and all(isinstance(t, tuple) and len(t) == 3 for t in tuples):
+        if isinstance(tuples, list) and all(isinstance(t, tuple) and len(t) == 2 for t in tuples):
             return tuples
         else:
             raise argparse.ArgumentTypeError("Invalid tuple list format.")
@@ -190,5 +189,6 @@ def parse_tuple_list(arg):
 
 if __name__ == '__main__':
   main()
+
 
 
